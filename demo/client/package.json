@@ -1,0 +1,20 @@
+{
+  "name": "mqtt-client",
+  "version": "0.0.1",
+  "description": "Simple MQTT client",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mqtt": "^2.7.1",
+    "pino": "^4.5.1",
+    "restify": "^4.3.0"
+  },
+  "engines": {
+    "node": ">=6.9.4"
+  },
+  "devDependencies": {
+    "dotenv": "^4.0.0"
+  }
+}

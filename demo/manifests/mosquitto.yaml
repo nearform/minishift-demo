@@ -1,0 +1,179 @@
+apiVersion: v1
+kind: List
+metadata:
+  name: eclipse-mosquitto
+items:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    generation: 1
+    labels:
+      app: eclipse-mosquitto
+    name: eclipse-mosquitto
+  spec:
+    tags:
+    - annotations:
+        openshift.io/imported-from: eclipse-mosquitto:latest
+      from:
+        kind: DockerImage
+        name: eclipse-mosquitto:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    generation: 16
+    labels:
+      app: eclipse-mosquitto
+    name: eclipse-mosquitto
+  spec:
+    replicas: 1
+    selector:
+      app: eclipse-mosquitto
+      deploymentconfig: eclipse-mosquitto
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: eclipse-mosquitto
+          deploymentconfig: eclipse-mosquitto
+      spec:
+        containers:
+        - image: eclipse-mosquitto
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 1883
+            timeoutSeconds: 2
+          name: eclipse-mosquitto
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 1883
+            timeoutSeconds: 2
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+            - mountPath: /mosquitto/config
+              name: config-volume
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+          - configMap:
+              name: mosquitto
+            name: config-volume
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - eclipse-mosquitto
+        from:
+          kind: ImageStreamTag
+          name: eclipse-mosquitto:latest
+      type: ImageChange
+  status:
+    availableReplicas: 1
+    observedGeneration: 16
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: eclipse-mosquitto
+    name: mosquitto-websocket
+  spec:
+    port:
+      targetPort: 9002
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: eclipse-mosquitto
+      weight: 100
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: eclipse-mosquitto
+    name: eclipse-mosquitto
+  spec:
+    ports:
+    - name: mqtt
+      port: 1883
+      protocol: TCP
+      targetPort: 1883
+    - name: mqttwebsocket
+      port: 9002
+      protocol: TCP
+      targetPort: 9002
+    selector:
+      app: eclipse-mosquitto
+    sessionAffinity: None
+    type: LoadBalancer
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: mosquitto
+  data:
+    mosquitto.conf: |
+      # Config file for mosquitto
+      user mosquitto
+
+      retry_interval 20
+      sys_interval 10
+      max_inflight_messages 40
+      max_queued_messages 200
+      queue_qos0_messages false
+      message_size_limit 0
+      allow_zero_length_clientid true
+      persistent_client_expiration 3m
+      allow_duplicate_messages false
+      autosave_interval 60
+      autosave_on_changes false
+
+      # Persistence configuration
+      persistence false
+
+      # Logging
+      connection_messages false
+      log_dest stderr
+      log_dest stdout
+      log_dest none
+      log_type error
+      log_type warning
+      log_type notice
+      log_type information
+      log_type all
+      log_type debug
+      log_timestamp true
+
+      # Listeners
+      listener 1883
+      protocol mqtt
+
+      listener 9002
+      protocol websockets
