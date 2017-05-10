@@ -20,30 +20,38 @@ shopt -s dotglob
 echo "---> Installing application source ..."
 mv /tmp/src/* ./
 
+# restore build artifacts
+if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+	echo "restoring dependencies from previous build"
+  mv /tmp/artifacts/* ./
+else
+	echo "No cached dependencies to restore"
+fi
+
 if [ ! -z $HTTP_PROXY ]; then
-	echo "---> Setting npm http proxy to $HTTP_PROXY"
-	npm config set proxy $HTTP_PROXY
+  echo "---> Setting npm http proxy to $HTTP_PROXY"
+  npm config set proxy $HTTP_PROXY
 fi
 
 if [ ! -z $http_proxy ]; then
-	echo "---> Setting npm http proxy to $http_proxy"
-	npm config set proxy $http_proxy
+  echo "---> Setting npm http proxy to $http_proxy"
+  npm config set proxy $http_proxy
 fi
 
 if [ ! -z $HTTPS_PROXY ]; then
-	echo "---> Setting npm https proxy to $HTTPS_PROXY"
-	npm config set https-proxy $HTTPS_PROXY
+  echo "---> Setting npm https proxy to $HTTPS_PROXY"
+  npm config set https-proxy $HTTPS_PROXY
 fi
 
 if [ ! -z $https_proxy ]; then
-	echo "---> Setting npm https proxy to $https_proxy"
-	npm config set https-proxy $https_proxy
+  echo "---> Setting npm https proxy to $https_proxy"
+  npm config set https-proxy $https_proxy
 fi
 
 # Change the npm registry mirror if provided
 if [ -n "$NPM_MIRROR" ]; then
-	npm config set registry $NPM_MIRROR
+  npm config set registry $NPM_MIRROR
 fi
 
 echo "---> Building your Node application from source"
-npm install
+npm install --depth 0

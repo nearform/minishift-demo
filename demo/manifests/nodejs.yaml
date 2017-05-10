@@ -68,6 +68,7 @@ objects:
           kind: ImageStreamTag
           name: "${IMAGE}"
           namespace: "${NAMESPACE}"
+        incremental: true
         env:
         - name: "BUILD_LOGLEVEL"
           value: "5"
@@ -154,4 +155,4 @@ parameters:
   displayName: Image name
   name: IMAGE
   required: true
-  value: node:7.10.0
+  value: node:latest
