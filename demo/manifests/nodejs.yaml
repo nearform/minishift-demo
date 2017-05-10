@@ -73,7 +73,6 @@ objects:
         - name: "BUILD_LOGLEVEL"
           value: "5"
     triggers:
-    - type: ImageChange
     - type: ConfigChange
 - apiVersion: v1
   kind: DeploymentConfig
