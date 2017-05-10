@@ -3,7 +3,7 @@
 set -e
 
 MINISHIFT_DIRECTORY="$(dirname $PWD)"
-PROJECT=hello
+PROJECT=minishift-demo
 
 OPENSHIFT_TOKEN=$(oc whoami -t)
 OPENSHIFT_REGISTRY="$(minishift openshift registry)"
@@ -11,7 +11,7 @@ OPENSHIFT_REGISTRY="$(minishift openshift registry)"
 echo "Creating demo application..."
 echo "=========================="
 echo "(1/5) Creating new project..."
-oc new-project $PROJECT --display-name="Hello Project" --description="This is initial setup for Hello project" > /dev/null
+oc new-project $PROJECT --display-name="Demo Project" --description="A demo project designed to help you start developing with minishift" > /dev/null
 
 echo "=========================="
 echo "(2/5) Create builder image..."

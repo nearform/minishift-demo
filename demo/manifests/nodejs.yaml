@@ -133,7 +133,7 @@ parameters:
   displayName: Namespace
   name: NAMESPACE
   required: true
-  value: hello
+  value: minishift-demo
 - description: Maximum amount of memory the container can use.
   displayName: Memory Limit
   name: MEMORY_LIMIT
