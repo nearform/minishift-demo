@@ -7,25 +7,19 @@
 
 set -e
 
-# Global modules good to have
-# npmgl=$(grep "^\s*[^#\s]" ../etc/npm_global_module_list | sort -u)
-# Available global modules; only match top-level npm packages
-#global_modules=$(npm ls -g 2> /dev/null | perl -ne 'print "$1\n" if /^\S+\s(\S+)\@[\d\.-]+/' | sort -u)
-# List all modules in common
-#module_list=$(/usr/bin/comm -12 <(echo "${global_modules}") | tr '\n' ' ')
-# Link the modules
-#npm link $module_list
-
 shopt -s dotglob
 echo "---> Installing application source ..."
 mv /tmp/src/* ./
 
 # restore build artifacts
 if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
-	echo "restoring dependencies from previous build"
-  mv /tmp/artifacts/* ./
+  echo "restoring dependencies from previous build"
+  if [ "$CACHE_DEPS" == "true"]; then
+    rm -rf ./node_modules || true
+    mv /tmp/artifacts/* ./
+  fi
 else
-	echo "No cached dependencies to restore"
+  echo "No cached dependencies to restore"
 fi
 
 if [ ! -z $HTTP_PROXY ]; then

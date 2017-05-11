@@ -72,6 +72,8 @@ objects:
         env:
         - name: "BUILD_LOGLEVEL"
           value: "5"
+        - name: "CACHE_DEPS"
+          value: "true"
     triggers:
     - type: ConfigChange
 - apiVersion: v1
