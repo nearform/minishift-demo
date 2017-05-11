@@ -1,49 +1,48 @@
 #!/bin/bash
 
-set -e
-
-MINISHIFT_DIRECTORY="$(dirname $PWD)"
+MINISHIFT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT=minishift-demo
 
 OPENSHIFT_TOKEN=$(oc whoami -t)
 OPENSHIFT_REGISTRY="$(minishift openshift registry)"
 
 echo "Creating demo application..."
-echo "=========================="
-echo "(1/5) Creating new project..."
-oc new-project $PROJECT --display-name="Demo Project" --description="A demo project designed to help you start developing with minishift" > /dev/null
 
 echo "=========================="
-echo "(2/5) Create builder image..."
+echo "(1/4) Creating new project..."
+
+oc new-project $PROJECT --display-name="Demo Project" --description="A demo project designed to help you start developing with Minishift" > /dev/null
+
+echo "=========================="
+echo "(2/4) Installing node_modules..."
+
+cd "$MINISHIFT_DIRECTORY"/../demo/hello && npm install && cd - || exit 1
+
+echo "=========================="
+echo "(2/4) Create builder image..."
+
 echo "Setting Docker daemon..."
 eval "$(minishift docker-env --shell bash)"
+
 echo "Login to Openshift registry..."
-docker login -u developer -p $OPENSHIFT_TOKEN $OPENSHIFT_REGISTRY > /dev/null
+docker login -u developer -p "$OPENSHIFT_TOKEN" "$OPENSHIFT_REGISTRY"
+
 echo "Build S2I image..."
-docker build -q $MINISHIFT_DIRECTORY/s2i-images/node-7.10.0 -t nearform/node:7.10.0
-echo "Tag S2I Image"
-docker tag nearform/node:7.10.0 $OPENSHIFT_REGISTRY/$PROJECT/node:7.10.0
-docker tag nearform/node:7.10.0 $OPENSHIFT_REGISTRY/$PROJECT/node:latest # Push with tag latest
+docker build -q "$MINISHIFT_DIRECTORY"/../demo/hello -t nearform/hello
+
+echo "Tag S2I Image..."
+docker tag nearform/hello "$OPENSHIFT_REGISTRY"/$PROJECT/hello:latest # Push with tag latest
+
 echo "Push to Openshift registry..."
-docker push $OPENSHIFT_REGISTRY/$PROJECT/node:7.10.0
-docker push $OPENSHIFT_REGISTRY/$PROJECT/node:latest
+docker push "$OPENSHIFT_REGISTRY"/$PROJECT/hello:latest
 
 echo "=========================="
-echo "(3/5) Deploying Mosquitto..."
-oc create -f $MINISHIFT_DIRECTORY/demo/manifests/mosquitto.yaml > /dev/null
+echo "(4/4) Deploying hello..."
 
-sleep 5
-
-echo "=========================="
-echo "(4/5) Deploying server..."
-oc process -f $MINISHIFT_DIRECTORY/demo/manifests/nodejs.yaml -p NAME=server -p PROBE=/healthz | oc create -f - 
-oc set env dc/server SERVER_PORT=8080 LOG_LEVEL=debug MQTT_BROKER=mqtt://eclipse-mosquitto
-oc start-build server --from-dir $MINISHIFT_DIRECTORY/demo/server
-
-sleep 5
-
-echo "=========================="
-echo "(5/5) Deploying client..."
-oc process -f $MINISHIFT_DIRECTORY/demo/manifests/nodejs.yaml -p NAME=client -p PROBE=/healthz | oc create -f -
-oc set env dc/client SERVER_PORT=8080 LOG_LEVEL=debug MQTT_BROKER=mqtt://eclipse-mosquitto
-oc start-build client --from-dir $MINISHIFT_DIRECTORY/demo/client
+oc new-app -f "$MINISHIFT_DIRECTORY"/../demo/manifests/openshift/nodejs.yaml \
+  -p NAME=hello \
+  -p PROBE=/healthz \
+  -p IMAGE="${OPENSHIFT_REGISTRY}"/$PROJECT/hello:latest \
+  -p APP_VOLUME="${MINISHIFT_DIRECTORY}"/../demo/hello \
+  -e SERVER_PORT=8080 \
+  -e LOG_LEVEL=debug
