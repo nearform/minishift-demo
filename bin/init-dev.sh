@@ -1,15 +1,13 @@
 #!/bin/bash
 
-set -e
-
 latest_release () {
-  curl -L -s -H 'Accept: application/json' $1 | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
+  curl -L -s -H 'Accept: application/json' "$1" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
 }
 
 extract () {
-  mkdir $2
+  mkdir "$2"
   echo "Extracting archive..."
-  tar -xzf $1 -C $2
+  tar -xzf "$1" -C "$2"
 }
 
 OS_TYPE=$(uname -s)
@@ -19,11 +17,11 @@ LATEST_RELEASE=$(latest_release https://github.com/minishift/minishift/releases/
 FILE=minishift.tgz
 DIR=./minishift
 
-curl -sL https://github.com/minishift/minishift/releases/download/${LATEST_RELEASE}/minishift-${LATEST_RELEASE:1}-${OS_TYPE}-amd64.tgz -o $FILE
+curl -sL https://github.com/minishift/minishift/releases/download/"${LATEST_RELEASE}"/minishift-"${LATEST_RELEASE:1}"-"${OS_TYPE}"-amd64.tgz -o $FILE
 extract $FILE $DIR
 
 echo "(2/5) Where do you want to copy the executable? (default: /usr/local/bin)"
-read MINISHIFT_PATH
+read -r MINISHIFT_PATH
 
 if [[ -z $MINISHIFT_PATH ]]; then
   MINISHIFT_PATH=/usr/local/bin
@@ -34,7 +32,7 @@ rm -rf $FILE $DIR
 
 echo "(3/5) Which hypervisor do you want to use? (recommended: virtualbox)?"
 [[ "$OS_TYPE" == "Darwin" ]] && echo "(xhyve, virtualbox, vmware-fusion)" || echo "(kvm, virtualbox)"
-read HYPERVISOR
+read -r HYPERVISOR
 
 if [[ -z $HYPERVISOR ]]; then
   HYPERVISOR=virtualbox
