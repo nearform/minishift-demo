@@ -4,9 +4,11 @@
   "description": "Minishift hello example",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:dev": "nodemon index.js"
   },
   "dependencies": {
+    "nodemon": "^1.11.0",
     "pino": "^4.5.1",
     "restify": "^4.3.0"
   },
