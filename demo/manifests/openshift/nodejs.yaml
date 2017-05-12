@@ -60,15 +60,19 @@ objects:
         name: "${NAME}"
       spec:
         containers:
-        - env: []
-          image: "${IMAGE}"
+        - name: ${NAME}
+          env:
+          - name: "SERVER_PORT"
+            value: "${SERVER_PORT}"
+          - name: "LOG_LEVEL"
+            value: "${LOG_LEVEL}"
+          image: "${NAMESPACE}/${NAME}:latest"
           livenessProbe:
             httpGet:
               path: "${PROBE}"
               port: 8080
             initialDelaySeconds: 30
             timeoutSeconds: 3
-          name: minishift-demo
           volumeMounts:
           - mountPath: /usr/src
             name: app-volume
@@ -87,6 +91,38 @@ objects:
         - name: app-volume
           hostPath:
             path: "${APP_VOLUME}"
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the application image
+    name: "${NAME}"
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      description: Defines how to build the application
+    name: "${NAME}"
+  spec:
+    runPolicy: Serial
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${NAME}:latest"
+    source:
+      type: Binary
+    strategy:
+      type: Docker
     triggers:
     - type: ConfigChange
 parameters:
@@ -116,13 +152,16 @@ parameters:
   displayName: Path Probe
   name: PROBE
   value: ''
-- description: The name of the Docker image
-  displayName: Image name
-  name: IMAGE
-  required: true
-  value: ''
 - description: The local path where the application is stored
   displayName: App volume
   name: APP_VOLUME
   required: true
   value: ''
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: SERVER_PORT
+  value: '8080'
+- description: Log level applied to the process
+  displayName: Log Level
+  name: LOG_LEVEL
+  value: 'debug'
