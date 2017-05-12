@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: nodejs-example
+  template: minishift-demo
 message: |-
   The following service(s) have been created in your project: ${NAME}.
 
@@ -17,7 +17,7 @@ metadata:
     template.openshift.io/long-description: This template defines resources needed to develop a NodeJS application, including a build configuration and application deployment configuration. It does not include a database.
     template.openshift.io/provider-display-name: Red Hat, Inc.
     template.openshift.io/support-url: https://access.redhat.com
-  name: nodejs-example
+  name: minishift-demo
 objects:
 - apiVersion: v1
   kind: Service
@@ -42,39 +42,6 @@ objects:
       kind: Service
       name: "${NAME}"
 - apiVersion: v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      description: Keeps track of changes in the application image
-    name: "${NAME}"
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    annotations:
-      description: Defines how to build the application
-    name: "${NAME}"
-  spec:
-    runPolicy: Serial
-    output:
-      to:
-        kind: ImageStreamTag
-        name: "${NAME}:latest"
-    source:
-      type: Binary
-    strategy:
-      type: Source
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: "${IMAGE}"
-          namespace: "${NAMESPACE}"
-        env:
-        - name: "BUILD_LOGLEVEL"
-          value: "5"
-    triggers:
-    - type: ImageChange
-    - type: ConfigChange
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     annotations:
@@ -94,14 +61,17 @@ objects:
       spec:
         containers:
         - env: []
-          image: ""
+          image: "${IMAGE}"
           livenessProbe:
             httpGet:
               path: "${PROBE}"
               port: 8080
             initialDelaySeconds: 30
             timeoutSeconds: 3
-          name: nodejs-example
+          name: minishift-demo
+          volumeMounts:
+          - mountPath: /usr/src
+            name: app-volume
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -113,22 +83,18 @@ objects:
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
+        volumes:
+        - name: app-volume
+          hostPath:
+            path: "${APP_VOLUME}"
     triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - nodejs-example
-        from:
-          kind: ImageStreamTag
-          name: "${NAME}:latest"
-      type: ImageChange
     - type: ConfigChange
 parameters:
 - description: The name assigned to all of the frontend objects defined in this template.
   displayName: Name
   name: NAME
   required: true
-  value: nodejs-example
+  value: minishift-demo
 - description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace
   name: NAMESPACE
@@ -154,4 +120,9 @@ parameters:
   displayName: Image name
   name: IMAGE
   required: true
-  value: node:7.10.0
+  value: ''
+- description: The local path where the application is stored
+  displayName: App volume
+  name: APP_VOLUME
+  required: true
+  value: ''
