@@ -16,7 +16,7 @@ oc new-project $PROJECT --display-name="Demo Project" --description="A demo proj
 echo "=========================="
 echo "(2/4) Installing node_modules..."
 
-cd "$MINISHIFT_DIRECTORY"/../demo/hello && npm install && cd - || exit 1
+cd "$MINISHIFT_DIRECTORY"/../demo/hello && npm install --quiet && cd - || exit 1
 
 echo "=========================="
 echo "(2/4) Create builder image..."
