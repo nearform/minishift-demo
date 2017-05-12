@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MINISHIFT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
 
 OPENSHIFT_TOKEN=$(oc whoami -t)

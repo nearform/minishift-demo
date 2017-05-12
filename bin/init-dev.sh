@@ -12,7 +12,7 @@ extract () {
 
 OS_TYPE=$(uname -s)
 
-echo "(1/5) Install minishift..."
+echo "(1/4) Installing minishift..."
 LATEST_RELEASE=$(latest_release https://github.com/minishift/minishift/releases/latest)
 FILE=minishift.tgz
 DIR=./minishift
@@ -20,7 +20,7 @@ DIR=./minishift
 curl -sL https://github.com/minishift/minishift/releases/download/"${LATEST_RELEASE}"/minishift-"${LATEST_RELEASE:1}"-"${OS_TYPE}"-amd64.tgz -o $FILE
 extract $FILE $DIR
 
-echo "(2/5) Where do you want to copy the executable? (default: /usr/local/bin)"
+echo "(2/4) Where do you want to copy the executable? (default: /usr/local/bin)"
 read -r MINISHIFT_PATH
 
 if [[ -z $MINISHIFT_PATH ]]; then
@@ -30,7 +30,7 @@ fi
 cp $DIR/minishift $MINISHIFT_PATH
 rm -rf $FILE $DIR
 
-echo "(3/5) Which hypervisor do you want to use? (recommended: virtualbox)?"
+echo "(3/4) Which hypervisor do you want to use? (recommended: virtualbox)?"
 [[ "$OS_TYPE" == "Darwin" ]] && echo "(xhyve, virtualbox, vmware-fusion)" || echo "(kvm, virtualbox)"
 read -r HYPERVISOR
 
@@ -38,5 +38,9 @@ if [[ -z $HYPERVISOR ]]; then
   HYPERVISOR=virtualbox
 fi
 
-echo "(4/5) Starting Minishift..."
+echo "(4/4) Starting Minishift..."
 minishift start --vm-driver $HYPERVISOR
+
+echo "Please login as system admin: oc login -u system:admin"
+echo "Run oc edit scc restricted"
+echo "Set allowHostDirVolumePlugin to true"
