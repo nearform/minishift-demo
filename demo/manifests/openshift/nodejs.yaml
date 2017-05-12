@@ -61,6 +61,10 @@ objects:
       spec:
         containers:
         - name: ${NAME}
+          command:
+            - npm
+            - run
+            - start:dev
           env:
           - name: "SERVER_PORT"
             value: "${SERVER_PORT}"
@@ -76,6 +80,8 @@ objects:
           volumeMounts:
           - mountPath: /usr/src
             name: app-volume
+          - mountPath: /.config
+            name: nodemon-volume
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -91,6 +97,7 @@ objects:
         - name: app-volume
           hostPath:
             path: "${APP_VOLUME}"
+        - name: nodemon-volume
     triggers:
     - type: ConfigChange
     - type: ImageChange
