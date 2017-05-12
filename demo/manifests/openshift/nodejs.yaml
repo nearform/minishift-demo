@@ -164,4 +164,4 @@ parameters:
 - description: Log level applied to the process
   displayName: Log Level
   name: LOG_LEVEL
-  value: 'dbug'
+  value: 'debug'

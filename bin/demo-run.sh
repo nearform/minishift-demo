@@ -4,9 +4,6 @@ MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
 APP_NAME=hello-server
 
-OPENSHIFT_TOKEN=$(oc whoami -t)
-OPENSHIFT_REGISTRY="$(minishift openshift registry)"
-
 echo "Creating demo application..."
 
 echo "=========================="
