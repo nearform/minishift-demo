@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
 APP_NAME=hello-server
@@ -14,7 +16,7 @@ oc new-project $PROJECT --display-name="Demo Project" --description="A demo proj
 echo "=========================="
 echo "(2/4) Installing node_modules..."
 
-cd "$MINISHIFT_DIRECTORY"/../demo/hello && npm install --quiet && cd - || exit 1
+cd "$MINISHIFT_DIRECTORY"/../demo/hello && npm install --quiet && cd -
 
 echo "=========================="
 echo "(3/4) Deploying hello-server..."
@@ -28,4 +30,4 @@ oc process -f "$MINISHIFT_DIRECTORY"/../demo/manifests/openshift/nodejs.yaml \
   -p APP_VOLUME="${MINISHIFT_DIRECTORY}"/../demo/hello | oc create -f -
 
 echo "(4/4) Building hello-server Image"
-oc start-build $APP_NAME --from-dir $MINISHIFT_DIRECTORY/../demo/hello
+oc start-build $APP_NAME --from-dir "$MINISHIFT_DIRECTORY"/../demo/hello

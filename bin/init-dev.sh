@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 latest_release () {
   curl -L -s -H 'Accept: application/json' "$1" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
 }
