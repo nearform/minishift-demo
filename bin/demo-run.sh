@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
 MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
