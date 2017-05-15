@@ -74,7 +74,7 @@ objects:
           livenessProbe:
             httpGet:
               path: "${PROBE}"
-              port: "${SERVER_PORT}"
+              port: 8080
             initialDelaySeconds: 30
             timeoutSeconds: 3
           volumeMounts:
@@ -87,7 +87,7 @@ objects:
           readinessProbe:
             httpGet:
               path: "${PROBE}"
-              port: "${SERVER_PORT}"
+              port: 8080
             initialDelaySeconds: 3
             timeoutSeconds: 3
           resources:
