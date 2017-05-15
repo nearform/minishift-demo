@@ -3,13 +3,13 @@
 set -eo pipefail
 
 latest_release () {
-  curl -L -s -H 'Accept: application/json' "$1" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
+  declare url=$1
+  curl -L -s -H 'Accept: application/json' "$url" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
 }
 
 extract () {
-  mkdir "$2"
-  echo "Extracting archive..."
-  tar -xzf "$1" -C "$2"
+  declare file=$1 dir=$2
+  mkdir -p "$dir" && tar -xzf "$file" -C "$dir"
 }
 
 OS_TYPE=$(uname -s)
