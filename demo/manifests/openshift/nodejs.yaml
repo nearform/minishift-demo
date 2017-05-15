@@ -80,6 +80,8 @@ objects:
           volumeMounts:
           - mountPath: /usr/src/app/bin
             name: app-volume
+          - mountPath: /usr/src/app/bin
+            name: empty-nodemodules
           - mountPath: /.config
             name: nodemon-volume
           ports:
@@ -98,6 +100,7 @@ objects:
           hostPath:
             path: "${APP_VOLUME}"
         - name: nodemon-volume
+        - name: empty-nodemodules
     triggers:
     - type: ConfigChange
     - type: ImageChange

@@ -1,4 +1,4 @@
-FROM node:6.10.3-alpine
+FROM node:6.10.3
 
 RUN mkdir -p /usr/src/app/bin
 RUN mkdir -p /usr/src/app/lib
@@ -8,7 +8,7 @@ COPY ./ /usr/src/app/bin
 
 WORKDIR /usr/src/app/lib
 
-RUN npm install
+RUN npm install --depth=1
 
 WORKDIR /usr/src/app/bin
 
