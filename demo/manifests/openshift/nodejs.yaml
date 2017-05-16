@@ -80,7 +80,9 @@ objects:
           volumeMounts:
           - mountPath: /usr/src/app/bin
             name: app-volume
-          - mountPath: /usr/src/app/bin
+          - mountPath: /usr/src/app/bin/testdb
+            name: leveldb-volume
+          - mountPath: /usr/src/app/bin/node_modules
             name: empty-nodemodules
           - mountPath: /.config
             name: nodemon-volume
@@ -101,6 +103,7 @@ objects:
             path: "${APP_VOLUME}"
         - name: nodemon-volume
         - name: empty-nodemodules
+        - name: leveldb-volume
     triggers:
     - type: ConfigChange
     - type: ImageChange

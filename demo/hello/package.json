@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:dev": "nodemon -L index.js"
+    "start:dev": "nodemon -L index.js",
+    "oc:build": "oc start-build hello-server --from-dir=./"
   },
   "dependencies": {
+    "level": "^1.6.0",
     "nodemon": "^1.11.0",
     "pino": "^4.5.1",
     "restify": "^4.3.0"
