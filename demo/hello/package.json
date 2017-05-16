@@ -1,7 +1,7 @@
 {
-  "name": "hello",
+  "name": "hello-server",
   "version": "0.0.1",
-  "description": "Minishift hello example",
+  "description": "Minishift hello-server example",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
