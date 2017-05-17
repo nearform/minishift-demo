@@ -11,10 +11,10 @@ echo "(1/4) Applying extra permissions..."
 
 # This adds anyuid and hostaccess security context constraints to default service account
 # This is acceptable for a dev environment only
-oc login -u system:admin > /dev/null
+oc login -u system:admin
 oc adm policy add-scc-to-user anyuid system:serviceaccount:$PROJECT:default
 oc adm policy add-scc-to-user hostaccess system:serviceaccount:$PROJECT:default
-oc login -u developer > /dev/null
+oc login -u developer
 
 echo "=========================="
 echo "(2/4) Creating new project..."
