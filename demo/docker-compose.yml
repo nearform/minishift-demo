@@ -1,37 +1,11 @@
 version: '2'
 services:
-  client:
-    build: ./client
+  hello:
+    build: ./hello
     ports:
       - 8080:8080
     volumes:
-      - ./client:/home/app
+      - ./hello:/home/app
       - /home/app/node_modules
-    links:
-      - mosquitto
     environment:
       - SERVER_PORT=8080
-      - MQTT_BROKER=mqtt://mosquitto
-    depends_on:
-      - mosquitto
-  server:
-    build: ./server
-    ports:
-      - 8081:8081
-    volumes:
-      - ./server:/home/app
-      - /home/app/node_modules
-    links:
-      - mosquitto
-    environment:
-      - SERVER_PORT=8081
-      - MQTT_BROKER=mqtt://mosquitto
-    depends_on:
-      - mosquitto
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    ports:
-      - 1883:1883
-      - 9002:9002
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf

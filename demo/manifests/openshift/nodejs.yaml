@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: nodejs-example
+  template: minishift-demo
 message: |-
   The following service(s) have been created in your project: ${NAME}.
 
@@ -17,7 +17,7 @@ metadata:
     template.openshift.io/long-description: This template defines resources needed to develop a NodeJS application, including a build configuration and application deployment configuration. It does not include a database.
     template.openshift.io/provider-display-name: Red Hat, Inc.
     template.openshift.io/support-url: https://access.redhat.com
-  name: nodejs-example
+  name: minishift-demo
 objects:
 - apiVersion: v1
   kind: Service
@@ -42,6 +42,79 @@ objects:
       kind: Service
       name: "${NAME}"
 - apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      description: Defines how to deploy the application server
+    name: "${NAME}"
+  spec:
+    replicas: 1
+    selector:
+      name: "${NAME}"
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: "${NAME}"
+        name: "${NAME}"
+      spec:
+        containers:
+        - name: ${NAME}
+          command:
+            - npm
+            - run
+            - start:dev
+          env:
+          - name: "SERVER_PORT"
+            value: "${SERVER_PORT}"
+          - name: "LOG_LEVEL"
+            value: "${LOG_LEVEL}"
+          image: "${NAMESPACE}/${NAME}:latest"
+          livenessProbe:
+            httpGet:
+              path: "${PROBE}"
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+          volumeMounts:
+          - mountPath: /usr/src/app/bin
+            name: app-volume
+          - mountPath: /usr/src/app/bin/testdb
+            name: leveldb-volume
+          - mountPath: /usr/src/app/bin/node_modules
+            name: empty-nodemodules
+          - mountPath: /.config
+            name: nodemon-volume
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: "${PROBE}"
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: "${MEMORY_LIMIT}"
+        volumes:
+        - name: app-volume
+          hostPath:
+            path: "${APP_VOLUME}"
+        - name: nodemon-volume
+        - name: empty-nodemodules
+        - name: leveldb-volume
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
+- apiVersion: v1
   kind: ImageStream
   metadata:
     annotations:
@@ -62,75 +135,15 @@ objects:
     source:
       type: Binary
     strategy:
-      type: Source
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: "${IMAGE}"
-          namespace: "${NAMESPACE}"
-        incremental: true
-        env:
-        - name: "BUILD_LOGLEVEL"
-          value: "5"
-        - name: "CACHE_DEPS"
-          value: "true"
+      type: Docker
     triggers:
-    - type: ConfigChange
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    annotations:
-      description: Defines how to deploy the application server
-    name: "${NAME}"
-  spec:
-    replicas: 1
-    selector:
-      name: "${NAME}"
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          name: "${NAME}"
-        name: "${NAME}"
-      spec:
-        containers:
-        - env: []
-          image: ""
-          livenessProbe:
-            httpGet:
-              path: "${PROBE}"
-              port: 8080
-            initialDelaySeconds: 30
-            timeoutSeconds: 3
-          name: nodejs-example
-          ports:
-          - containerPort: 8080
-          readinessProbe:
-            httpGet:
-              path: "${PROBE}"
-              port: 8080
-            initialDelaySeconds: 3
-            timeoutSeconds: 3
-          resources:
-            limits:
-              memory: "${MEMORY_LIMIT}"
-    triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - nodejs-example
-        from:
-          kind: ImageStreamTag
-          name: "${NAME}:latest"
-      type: ImageChange
     - type: ConfigChange
 parameters:
 - description: The name assigned to all of the frontend objects defined in this template.
   displayName: Name
   name: NAME
   required: true
-  value: nodejs-example
+  value: minishift-demo
 - description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace
   name: NAMESPACE
@@ -152,8 +165,16 @@ parameters:
   displayName: Path Probe
   name: PROBE
   value: ''
-- description: The name of the Docker image
-  displayName: Image name
-  name: IMAGE
+- description: The local path where the application is stored
+  displayName: App volume
+  name: APP_VOLUME
   required: true
-  value: node:latest
+  value: ''
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: SERVER_PORT
+  value: '8080'
+- description: Log level applied to the process
+  displayName: Log Level
+  name: LOG_LEVEL
+  value: 'debug'

@@ -1,46 +1,26 @@
 #!/bin/bash
 
-# set -e
-
-DIR=$(cd `dirname $0` && pwd)
-MINISHIFT_DIRECTORY="$(dirname $PWD)"
+MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
-
-OPENSHIFT_TOKEN=$(oc whoami -t)
+APP_NAME=hello-server
 
 echo "Creating demo application..."
-echo "=========================="
-echo "(1/5) Creating new project..."
-oc new-project $PROJECT --display-name="Demo Project" --description="A demo project designed to help you start developing with minishift" > /dev/null
 
 echo "=========================="
+echo "(1/4) Creating new project..."
 
-if oc get imagestream node > /dev/null; then
-  echo "(2/5) node builder image exists. Skipping..."
-else
-  echo "(2/5) Creating node builder image"
-  oc create -f $DIR/../demo/manifests/node-s2i.yml
-  oc start-build node --from-dir $DIR/../s2i-images/node-7.10.0 --follow
-  sleep 5
-fi
-
+oc new-project $PROJECT --display-name="Demo Project" --description="A demo project designed to help you start developing with Minishift" > /dev/null
 
 echo "=========================="
-echo "(3/5) Deploying Mosquitto..."
-oc create -f $DIR/../demo/manifests/mosquitto.yaml > /dev/null
+echo "(2/3) Deploying hello-server..."
 
-sleep 5
+oc process -f "$MINISHIFT_DIRECTORY"/../demo/manifests/openshift/nodejs.yaml \
+  -p NAMESPACE=$PROJECT \
+  -p NAME=$APP_NAME \
+  -p PROBE=/healthz \
+  -p SERVER_PORT=8080 \
+  -p LOG_LEVEL=debug \
+  -p APP_VOLUME="${MINISHIFT_DIRECTORY}"/../demo/hello | oc create -f -
 
-echo "=========================="
-echo "(4/5) Deploying server..."
-oc process -f $DIR/../demo/manifests/nodejs.yaml -p NAME=server -p PROBE=/healthz | oc create -f - 
-oc set env dc/server SERVER_PORT=8080 LOG_LEVEL=debug MQTT_BROKER=mqtt://eclipse-mosquitto
-oc start-build server --from-dir $DIR/../demo/server
-
-sleep 5
-
-echo "=========================="
-echo "(5/5) Deploying client..."
-oc process -f $DIR/../demo/manifests/nodejs.yaml -p NAME=client -p PROBE=/healthz | oc create -f -
-oc set env dc/client SERVER_PORT=8080 LOG_LEVEL=debug MQTT_BROKER=mqtt://eclipse-mosquitto
-oc start-build client --from-dir $DIR/../demo/client
+echo "(3/3) Building hello-server Image"
+oc start-build $APP_NAME --from-dir $MINISHIFT_DIRECTORY/../demo/hello
