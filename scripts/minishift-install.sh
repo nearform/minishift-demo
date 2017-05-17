@@ -42,7 +42,3 @@ fi
 
 echo "(4/4) Starting Minishift..."
 minishift start --vm-driver $HYPERVISOR
-
-echo "Please login as system admin: oc login -u system:admin"
-echo "Run oc edit scc restricted"
-echo "Set allowHostDirVolumePlugin to true"

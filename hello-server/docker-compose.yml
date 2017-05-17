@@ -1,11 +1,11 @@
 version: '2'
 services:
   hello:
-    build: ./hello
+    build: .
     ports:
       - 8080:8080
     volumes:
-      - ./hello:/home/app
+      - .:/home/app
       - /home/app/node_modules
     environment:
       - SERVER_PORT=8080

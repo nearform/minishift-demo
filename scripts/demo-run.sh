@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MINISHIFT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
+DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=minishift-demo
 APP_NAME=hello-server
 
@@ -14,13 +14,13 @@ oc new-project $PROJECT --display-name="Demo Project" --description="A demo proj
 echo "=========================="
 echo "(2/3) Deploying hello-server..."
 
-oc process -f "$MINISHIFT_DIRECTORY"/../demo/manifests/openshift/nodejs.yaml \
+oc process -f "$DIR"/../openshift/nodejs.yaml \
   -p NAMESPACE=$PROJECT \
   -p NAME=$APP_NAME \
   -p PROBE=/healthz \
   -p SERVER_PORT=8080 \
   -p LOG_LEVEL=debug \
-  -p APP_VOLUME="${MINISHIFT_DIRECTORY}"/../demo/hello | oc create -f -
+  -p APP_VOLUME="${DIR}"/../hello-server | oc create -f -
 
 echo "(3/3) Building hello-server Image"
-oc start-build $APP_NAME --from-dir $MINISHIFT_DIRECTORY/../demo/hello
+oc start-build $APP_NAME --from-dir $DIR/../hello-server --follow
