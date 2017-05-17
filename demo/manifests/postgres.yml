@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: List
+metadata:
+  name: postgres
+items:
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: postgres-storage
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 8Gi
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    generation: 1
+    labels:
+      app: postgres
+    name: postgres
+  spec:
+    tags:
+    - annotations:
+        openshift.io/imported-from: postgres:latest
+      from:
+        kind: DockerImage
+        name: postgres:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    generation: 16
+    labels:
+      app: postgres
+    name: postgres
+  spec:
+    replicas: 1
+    selector:
+      app: postgres
+      deploymentconfig: postgres
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: postgres
+          deploymentconfig: postgres
+      spec:
+        containers:
+        - image: postgres
+          privileged: true
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 2
+          name: postgres
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 2
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-volume
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: "postgres-volume"
+          persistentVolumeClaim:
+            claimName: "postgres-storage"
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgres
+        from:
+          kind: ImageStreamTag
+          name: postgres:latest
+      type: ImageChange
+  status:
+    availableReplicas: 1
+    observedGeneration: 16
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: postgres
+    name: postgres
+  spec:
+    ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+    selector:
+      app: postgres
