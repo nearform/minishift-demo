@@ -32,10 +32,5 @@ oc process -f "$DIR"/../openshift/nodejs.yaml \
   -p LOG_LEVEL=debug \
   -p APP_VOLUME="${DIR}"/../hello-server | oc create -f -
 
-<<<<<<< HEAD:scripts/demo-run.sh
-echo "(3/3) Building hello-server Image"
-oc start-build $APP_NAME --from-dir $DIR/../hello-server --follow
-=======
 echo "(4/4) Building hello-server Image"
-oc start-build $APP_NAME --from-dir $MINISHIFT_DIRECTORY/../demo/hello
->>>>>>> 49f91c2dbbbdc0f339efd0aa7cf9abc5d9642cd5:bin/demo-run.sh
+oc start-build $APP_NAME --from-dir $DIR/../hello-server --follow
