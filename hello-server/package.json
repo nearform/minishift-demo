@@ -9,7 +9,7 @@
     "minishift:install": "../scripts/minishift-install.sh",
     "oc:create": "../scripts/demo-run.sh",
     "oc:delete": "oc delete project minishift-demo",
-    "oc:rebuild": "oc start-build hello-server --from-dir=./",
+    "oc:rebuild": "oc start-build hello-server --from-dir=./ --follow",
     "oc:console": "minishift console"
   },
   "dependencies": {
