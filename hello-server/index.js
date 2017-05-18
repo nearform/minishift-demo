@@ -12,6 +12,11 @@ const pino = require('pino')({
 
 const server = restify.createServer({ name: 'hello' })
 
+server.get('/', function (req, res, next) {
+  res.json({ msg: 'Hello World' })
+  return next()
+})
+
 server.get('/healthz', function (req, res, next) {
   res.json({ status: 'OK', timestamp: new Date() })
 
