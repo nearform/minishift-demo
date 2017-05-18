@@ -7,7 +7,7 @@
     "start": "node index.js",
     "start:dev": "nodemon -L index.js",
     "minishift:install": "../scripts/minishift-install.sh",
-    "oc:create": "../scripts/demo-run.sh",
+    "oc:create": "../scripts/create-project.sh",
     "oc:delete": "oc delete project minishift-demo",
     "oc:rebuild": "oc start-build hello-server --from-dir=./ --follow",
     "oc:console": "minishift console"

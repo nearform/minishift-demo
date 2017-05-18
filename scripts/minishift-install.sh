@@ -40,5 +40,5 @@ if [[ -z $HYPERVISOR ]]; then
   HYPERVISOR=virtualbox
 fi
 
-echo "(4/4) Starting Minishift..."
+echo "(4/4) minishift start --vm-driver $HYPERVISOR"
 minishift start --vm-driver $HYPERVISOR
