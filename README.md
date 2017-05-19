@@ -226,7 +226,7 @@ server.get('/version', function (req, res, next){
 
 Increment the version number and save the file. In the application logs you should see the application restart.
 
-## Challenges
+## Challenges Faced
 
 In a local development environment, it is critical that you can make code changes and execute them as quickly as possible. Being a production grade container platform, Openshift's default deployment mechanism consists of a building a service into a Docker image and simultaneously rolling out that service out while the old version is scaled down.
 
