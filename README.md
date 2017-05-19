@@ -226,7 +226,111 @@ server.get('/version', function (req, res, next){
 
 Increment the version number and save the file. In the application logs you should see the application restart.
 
-### Application Dependencies
+## Challenges
+
+In a local development environment, it is critical that you can make code changes and execute them as quickly as possible. Being a production grade container platform, Openshift's default deployment mechanism consists of a building a service into a Docker image and simultaneously rolling out that service out while the old version is scaled down.
+
+This feature is spectacular in a live environment but takes too much time in a development environment. Instant feedback is needed. We faced a number of challenges as we worked towards a feasible solution. The `hello-server` service for testing our setup.
+
+### Volume Mounts
+
+We wanted to see code changes reflected immediately without having to rebuild a container. The solution was to build the container once, and mount the local source code as a volume in the running container. To do this:
+
+1. The code has to be mounted into the Minishift VM.
+2. From the VM it has to be mounted into the container.
+
+Luckily Minishift creates a direct mapping of your local $HOME directory in the VM so we get the first part for free.
+
+The next part was configured by defining a volume in `minishift-demo.yaml` 
+
+```
+volumes:
+- name: app-volume
+  hostPath:
+    path: "${APP_VOLUME}"
+```
+
+Where `${APP_VOLUME}` is the local `hello-server` directory. This volume is mounted into the `/usr/src/app/bin` folder in the container.
+```
+volumeMounts:
+- mountPath: /usr/src/app/bin
+  name: app-volume
+```
+
+This made it possible to modify local code and have it update within the container.
+
+### Instant Reload
+We used the very popular [`nodemon`](https://www.npmjs.com/package/nodemon) utility to restart the application whenever code changes are made. Instead of being baked into the container, it's included as an application dependency along with an additional start command (`npn run start:dev`) in `package.json`. This approach was taken so the application's default behaviour is to run in a production mode without `nodemon`. In the `minishift-demo.yaml` file we override the container's default `CMD`:
+
+```
+# Taken from minishift-demo.yaml
+  command:
+  - npm
+  - run
+  - start:dev
+```
+
+There is **one caveat**. `nodemon` must be run in __legacy mode__ because it will not see changes inside a networked volume using the standard configuration. Legacy mode is provided for this exact use case. See nodemon [docs](https://www.npmjs.com/package/nodemon#application-isnt-restarting) for more info.
+
+### Permissions Issues
+
+As an enterprise platform, OpenShift is very security conscious and provides a standard configuration that makes perfect sense in a live environment. By default, containers do not have access to the filesystem on the underlying host so our solution of using volume mounts does not work out of the box.
+
+All of the Openshift components (e.g. registry, deployer, builder, application containers, etc) operate using a `service account`. Each project in OpenShift gets some default service accounts, as shown below:
+
+```
+$ oc get serviceaccounts
+NAME       SECRETS   AGE
+builder    2         19h
+default    2         19h
+deployer   2         19h
+```
+
+Service accounts and normal users have what are called `security context constraints` (SCC) attached to them. Essentially, they are policies that define a set of security rules. Multiple SCC's can be attached. There are a number of predefined SCCs out of the box
+
+```
+$ oc get scc
+NAME               PRIV      CAPS      SELINUX     RUNASUSER          FSGROUP     SUPGROUP    PRIORITY   READONLYROOTFS   VOLUMES
+anyuid             false     []        MustRunAs   RunAsAny           RunAsAny    RunAsAny    10         false            [configMap downwardAPI emptyDir persistentVolumeClaim secret]
+hostaccess         false     []        MustRunAs   MustRunAsRange     MustRunAs   RunAsAny    <none>     false            [configMap downwardAPI emptyDir hostPath persistentVolumeClaim secret]
+hostmount-anyuid   false     []        MustRunAs   RunAsAny           RunAsAny    RunAsAny    <none>     false            [configMap downwardAPI emptyDir hostPath nfs persistentVolumeClaim secret]
+hostnetwork        false     []        MustRunAs   MustRunAsRange     MustRunAs   MustRunAs   <none>     false            [configMap downwardAPI emptyDir persistentVolumeClaim secret]
+nonroot            false     []        MustRunAs   MustRunAsNonRoot   RunAsAny    RunAsAny    <none>     false            [configMap downwardAPI emptyDir persistentVolumeClaim secret]
+privileged         true      []        RunAsAny    RunAsAny           RunAsAny    RunAsAny    <none>     false            [*]
+restricted         false     []        MustRunAs   MustRunAsRange     MustRunAs   RunAsAny    <none>     false            [configMap downwardAPI emptyDir persistentVolumeClaim secret]
+```
+
+The service account we are interested in is the `default` service account as this one is used to run application containers unless specified otherwise. The `default` service account has the `restricted` SCC attached to it. To make our development environment less restrictive we attach the `hostaccess` and the `anyuid` policies to the `default` service account. This gives host access and allows the processes inside containers to run as the `root` user.
+
+We attach these policies in `scripts/create-project.sh`:
+
+```
+# This adds anyuid and hostaccess security context constraints to default service account
+# This is acceptable for a dev environment only
+oc login -u system:admin
+oc adm policy add-scc-to-user anyuid system:serviceaccount:$PROJECT:default
+oc adm policy add-scc-to-user hostaccess system:serviceaccount:$PROJECT:default
+```
+
+For more information see the [official documentation on SCCs](https://docs.openshift.org/latest/admin_guide/manage_scc.html).
+
+### Native Dependencies
+With our solution, the entire application folder is mounted from the developer's machine into the container. This initially included the local `node_modules` folder, but we soon realised this wasn't feasible because of native dependencies. Native dependencies are generally compiled at the time of running `npm install`. 
+
+A problem arises if a developer is using OSx or Windows and the application has native dependencies, their local `node_modules` folder simply won't be compatible inside a Linux container. Native modules are widely used and have to be supported.
+
+Simply building the dependencies into the application's `node_modules` as part of the `docker build` wouldn't work because the entire app directory gets replaced when our local one is mounted in the container. However, we couldn't scrap the volumes idea either because we found it was the most reliable solution for instant reload. We wanted to install dependencies at build time to ensure native addons are compiled properly, **and** mount our local app code.
+
+When you `require()` a dependency, `Node` obviously looks for it in the standard `node_modules` folder but it is possible to add additional search paths using the `$NODE_PATH` environment variable. See [node docs](https://nodejs.org/dist/latest-v6.x/docs/api/modules.html#modules_loading_from_the_global_folders).
+
+We were able to tweak the `Dockerfile` for get a working solution. Here's a summary of what we did:
+
+- Install the `node_modules` outside of the application folder.
+- Set the `$NODE_PATH` environment variable to point to the external `node_modules` folder.
+- Set the `$PATH` environment variable to point to the external `node_modules/.bin` folder to make executables like `nodemon` available.
+- Because the standard `node_modules` location has highest priotiry, an empty volume is mounted there to ensure our local `node_modules` never ends up inside the container.
+
+The one **caveat** of this solution is that any time dependencies need to be changed, a new build is needed. This is a tradeoff we're willing to make because the build times are still pretty fast.
 
 ## Templates
 
