@@ -1,13 +1,15 @@
 #!/bin/bash
 
+set -eo pipefail
+
 latest_release () {
-  curl -L -s -H 'Accept: application/json' "$1" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
+  declare url=$1
+  curl -L -s -H 'Accept: application/json' "$url" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'  
 }
 
 extract () {
-  mkdir "$2"
-  echo "Extracting archive..."
-  tar -xzf "$1" -C "$2"
+  declare file=$1 dir=$2
+  mkdir -p "$dir" && tar -xzf "$file" -C "$dir"
 }
 
 OS_TYPE=$(uname -s)
@@ -38,9 +40,5 @@ if [[ -z $HYPERVISOR ]]; then
   HYPERVISOR=virtualbox
 fi
 
-echo "(4/4) Starting Minishift..."
+echo "(4/4) minishift start --vm-driver $HYPERVISOR"
 minishift start --vm-driver $HYPERVISOR
-
-echo "Please login as system admin: oc login -u system:admin"
-echo "Run oc edit scc restricted"
-echo "Set allowHostDirVolumePlugin to true"

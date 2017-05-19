@@ -110,7 +110,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-          - ${NAME}
+        - ${NAME}
         from:
           kind: ImageStreamTag
           name: "${NAME}:latest"
