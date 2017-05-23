@@ -97,6 +97,8 @@ objects:
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
+            requests:
+              memory: 50Mi
         volumes:
         - name: app-volume
           hostPath:
@@ -153,7 +155,7 @@ parameters:
   displayName: Memory Limit
   name: MEMORY_LIMIT
   required: true
-  value: 512Mi
+  value: 128Mi
 - description: Set this to the relative path to your project if it is not in the root of your repository.
   displayName: Context Directory
   name: CONTEXT_DIR
