@@ -332,3 +332,54 @@ We were able to tweak the `Dockerfile` to get a working solution. Here's a summa
 
 The one **caveat** of this solution is that any time dependencies need to be changed, a new build is needed. This is a tradeoff we're willing to make because the build times are still pretty fast.
 
+### Scaling Services
+
+Scaling the hello-server is straight forward using the web console.  By scaling the pods, you can add serveral more instances of hello-server.  There is a limit of pods that can be added to a node based on available cpus and memory.  You can use the following command to view the node capacity on our minishift-demo:
+ 
+ ```
+ # Must be admin to view node information
+ $ oc login -u system:admin
+ $ oc describe node 
+  Capacity:
+    alpha.kubernetes.io/nvidia-gpu:    0
+    cpu:                   2
+    memory:                4045056Ki
+    pods:                  20
+  Allocatable:
+    alpha.kubernetes.io/nvidia-gpu:    0
+    cpu:                   2
+    memory:                4045056Ki
+    pods:                  20
+
+```
+
+The router and docker registry use 2 pods in the default namepsace leaving us with our demo to scale up to 18 services.
+
+To increase the pod capacity, you will need to tweak the cpus and/or memory.  By changing the minishift start config for cpus and memory in the minishift-demo.yaml with :
+
+```
+minishift config set memory 4096
+minishift config set cpus 4
+```
+
+Once started with the above config change, the node will allow up to 50 pods.
+
+```
+ $ oc describe node 
+  Capacity:
+    alpha.kubernetes.io/nvidia-gpu:    0
+    cpu:                   5
+    memory:                4045056Ki
+    pods:                  50
+  Allocatable:
+    alpha.kubernetes.io/nvidia-gpu:    0
+    cpu:                   5
+    memory:                4045056Ki
+    pods:                  50
+```
+
+The recommended maximum pods for a node is 110. [Pods and Services](https://docs.openshift.org/latest/architecture/core_concepts/pods_and_services.html#pods)
+
+You can also fine tune the cpu and memory limits of a service for better performance.  See [Quotas and Limits](https://docs.openshift.org/latest/dev_guide/compute_resources.html).
+
+
