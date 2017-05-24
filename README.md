@@ -355,7 +355,7 @@ Scaling the hello-server is straight forward using the web console.  By scaling 
 
 The router and docker registry use 2 pods in the default namepsace leaving us with our demo to scale up to 18 services.
 
-To increase the pods capaitcy you will need to tweak the cpus and/or memory.  By changing the minishift start config for cpus and memory in the minishift-demo.yaml with :
+To increase the pod capacity, you will need to tweak the cpus and/or memory.  By changing the minishift start config for cpus and memory in the minishift-demo.yaml with :
 
 ```
 minishift config set memory 4096
