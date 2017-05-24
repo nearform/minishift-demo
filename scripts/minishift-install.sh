@@ -40,7 +40,7 @@ if [[ -z $HYPERVISOR ]]; then
   HYPERVISOR=virtualbox
 fi
 
-echo "(4/6) Is this a large node ( 50 pods )? (no, yes)"
+echo "(4/6) Is this a large node up to 50 pods? (no, yes)"
 
 read -r SIZE
 
