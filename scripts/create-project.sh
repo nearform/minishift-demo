@@ -15,7 +15,6 @@ oc login -u system:admin
 oc adm policy add-scc-to-user anyuid system:serviceaccount:$PROJECT:default
 oc adm policy add-scc-to-user hostaccess system:serviceaccount:$PROJECT:default
 echo "developer" | oc login -u developer
-
 echo "=========================="
 echo "(2/4) Creating new project..."
 
@@ -31,6 +30,7 @@ oc process -f "$DIR"/../openshift/minishift-demo.yaml \
   -p SERVER_PORT=8080 \
   -p LOG_LEVEL=debug \
   -p APP_VOLUME="${DIR}"/../hello-server | oc create -f -
+
 
 echo "(4/4) Building hello-server Image"
 oc start-build $APP_NAME --from-dir $DIR/../hello-server --follow
