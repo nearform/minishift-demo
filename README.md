@@ -2,6 +2,8 @@
 
 The purpose of this repo is to demonstrate how Minishift and OpenShift can be used to develop software in a local development environment. 
 
+[Read the accompanying blog post for a higher level overview.](http://www.nearform.com/nodecrunch/minishift-development-environment-node-js-projects-openshift-kubernetes/)
+
 ## What is Minishift?
 
 Minishift is a tool that lets you run the entire OpenShift platform locally in a virtual machine. [OpenShift](https://www.OpenShift.org/) is Red Hat's open source container platform based off [Kubernetes](https://kubernetes.io/). 
