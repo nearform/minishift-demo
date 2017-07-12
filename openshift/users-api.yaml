@@ -1,0 +1,169 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: minishift-demo
+
+parameters:
+- description: The name assigned to all of the frontend objects defined in this template.
+  displayName: Name
+  name: NAME
+  required: true
+  value: users-api
+
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: NAMESPACE
+  required: true
+  value: minishift-demo
+
+- description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 128Mi
+
+- description: The path of the readiness probe and liveness probe
+  displayName: Path Probe
+  name: PROBE
+  value: /api/healthcheck
+
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: USERS_API_PORT
+  value: '3001'
+
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: DB_HOST
+  value: postgres
+
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: DB_USER
+  value: postgres
+
+- description: The port the server will run on inside the container
+  displayName: Server Port
+  name: DB_PASSWORD
+  value: postgres
+
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      description: Defines how to build the application
+    name: "${NAME}"
+  spec:
+    runPolicy: Serial
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${NAME}:latest"
+    source:
+      type: Git
+      git:
+        uri: "https://github.com/darahayes/pg-users-api.git"
+    strategy:
+      type: Docker
+      dockerStrategy:
+        dockerfilePath: Dockerfile-minishift
+    triggers:
+    - type: ConfigChange
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the application image
+    name: "${NAME}"
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: Exposes and load balances the application pods
+    name: "${NAME}"
+  spec:
+    ports:
+    - name: http
+      port: 3001
+      targetPort: 3001
+    selector:
+      name: "${NAME}"
+
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${NAME}"
+  spec:
+    to:
+      kind: Service
+      name: "${NAME}"
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      description: Defines how to deploy the application server
+    name: "${NAME}"
+  spec:
+    replicas: 1
+    selector:
+      name: "${NAME}"
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: "${NAME}"
+        name: "${NAME}"
+      spec:
+        containers:
+        - name: ${NAME}
+          command:
+            - /bin/sh
+            - -c
+            - "npm run db:init && npm run db:migrate && npm run db:seed && npm run start:dev"
+          env:
+          - name: "USERS_API_HOST"
+            value: "0.0.0.0"
+          - name: "USERS_API_PORT"
+            value: "${USERS_API_PORT}"
+          - name: "DB_HOST"
+            value: "${DB_HOST}"
+          - name: "DB_USER"
+            value: "${DB_USER}"
+          - name: "DB_PASSWORD"
+            value: "${DB_PASSWORD}"
+          image: "${NAMESPACE}/${NAME}:latest"
+          livenessProbe:
+            httpGet:
+              path: "${PROBE}"
+              port: 3001
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+          ports:
+          - containerPort: 3001
+          readinessProbe:
+            httpGet:
+              path: "${PROBE}"
+              port: 3001
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: "${MEMORY_LIMIT}"
+            requests:
+              memory: 50Mi
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
