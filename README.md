@@ -385,3 +385,51 @@ The recommended maximum pods for a node is 110. [Pods and Services](https://docs
 You can also fine tune the cpu and memory limits of a service for better performance.  See [Quotas and Limits](https://docs.openshift.org/latest/dev_guide/compute_resources.html).
 
 
+
+
+## Getting started with Openshift Origin
+
+Minishift is great for deploymnet but to run in production you will need to deploy to an openshift cluster.  We have also included script example to deploy to Openshift.
+
+### What is Openshift Origin?
+
+Red Hat OpenShift Origin is an open source container application platform (PaaS) that brings *docker* and *Kubernetes* to the developers.
+
+Origin is the upstream community project that powers OpenShift. Built around a core of Docker container packaging and Kubernetes container cluster management, Origin is also augmented by application lifecycle management functionality and DevOps tooling. Origin provides a complete open source container application platform.
+
+
+### Prerequisites
+* Openshift running in a cloud environment (AWS, GCE, Azure, Bare Metal)
+* `oc` client installed locally
+
+### Install Openshift Origin
+
+In order to run the demo project, we need to have hosted an Openshift environment. As part of the Openshift work, we have deployed an Openshift cluster on our AWS account. Refer to the repository [nearform/openshift-ansible](https://github.com/nearform/openshift-ansible) for more info on how to install Openshift Origin in AWS.
+
+## Setup GIT Deploy Keys
+
+The git repo will need to be accessable using your deploy keys.  The easiest way to do this is to fork the minishift demo and setup the deploy keys.  Instructions for setting up the keys are here. https://developer.github.com/v3/guides/managing-deploy-keys/
+
+Run this command below to match the SSH key filename used in the deploy script:
+`ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f "deploy"`
+
+Next step is to edit the scripts/create-openshift-project.sh and replace username with your github account name.
+
+`GIT_REPO=git@github.com:username/minishift-demo.git`
+
+## Install and login with the CLI
+
+The Minishift installation installs the Openshift Origin CLI called `oc`.  You can pull down the latest CLI at [Origin CLI](https://github.com/openshift/origin/releases/latest).
+
+To login to the openshift environment use :
+`oc login https://openshift-master.{YOUR HOSTNAME} --token={token}`
+
+The token can be found at:
+`https://openshift-master.{YOUR HOSTNAME}/console/command-line`
+
+
+## Create Openshift Project
+
+Execut scripts/create-openshift-project.sh to create the demo project on openshift.
+
+You should see a Success message when the script is finished.  To deploy the demo app execute `oc start-build hello-server`.  This will build and deploy the hello-server in openshift.  

@@ -6,7 +6,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT=${PROJECT:=openshift-demo}
 APP_NAME=${APP_NAME:=hello-server}
 SSH_KEY=${SSH_KEY:=deploy}
-GIT_REPO=git@github.com:nearform/minishift-demo.git
+GIT_REPO=git@github.com:username/minishift-demo.git
 GIT_DIR=hello-server
 
 command -v oc > /dev/null 2>&1 || { echo >&2 "The oc is required to run this script."; exit 1; }

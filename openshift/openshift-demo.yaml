@@ -10,7 +10,7 @@ metadata:
     iconClass: icon-nodejs
     template.openshift.io/long-description: This template defines resources needed to develop a NodeJS application, including a build configuration and application deployment configuration. It does not include a database.
     template.openshift.io/provider-display-name: Red Hat, Inc.
-    template.openshift.io/documentation-url: https://github.com/nearform/openshift-demo
+    template.openshift.io/documentation-url: https://github.com/nearform/minishift-demo
     template.openshift.io/support-url: https://www.nearform.com
 message: |-
   The following service(s) have been created in your project: ${NAME}.
