@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "start:dev": "nodemon -L index.js",
+    "test": "jest",
     "minishift:install": "../scripts/minishift-install.sh",
     "oc:create": "../scripts/create-project.sh",
     "oc:delete": "oc delete project minishift-demo",
@@ -17,6 +18,9 @@
     "nodemon": "^1.11.0",
     "pino": "^4.5.1",
     "restify": "^4.3.0"
+  },
+    "devDependencies": {
+    "jest": "^20.0.4"
   },
   "engines": {
     "node": ">=6.9.4"
