@@ -418,7 +418,7 @@ The git repo will need to be accessible using your deploy keys. Detail intructio
 - Run this command below to match the SSH key filename used in the deploy script:
 ```ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f "deploy"```
 
-- Next step is to edit the scripts/create-openshift-project.sh and replace username with your github account name.
+- Edit the scripts/create-openshift-project.sh and replace username with your github account name.
 ```GIT_REPO=git@github.com:username/minishift-demo.git```
 
 ## Install and login with the CLI
@@ -428,9 +428,11 @@ The Minishift installation installs the Openshift Origin CLI called `oc`.  `oc` 
 - Go to you Openshift web console which is found at `https://openshift-master.your_hostname/console/`
 
 - Once there, click Command Line tools next to your login:
+
 ![CLI](./images/cli-tools.png)
 
 - Copy your login command with token to clipboard:
+
 ![OC Login](./images/oc-login.png)
 
 - Run the login command on your local terminal.  Will look like below:
@@ -439,11 +441,14 @@ The Minishift installation installs the Openshift Origin CLI called `oc`.  `oc` 
 
 ## Create Openshift Project
 
-Execute scripts/create-openshift-project.sh to create the demo project on the Openshift cluster in AWS.
+`cd` into the scripts directory and run `./create-openshift-project.sh` to create the demo project on the Openshift cluster in AWS.
+
+This script takes openshift/openshift-demo.yaml - a template file that defines all the resources needed to run the application and passes it into the oc cli tool (pointing to the AWS openshift cluster) along with some additional parameters. This gets passed into the OpenShift cluster where the resources are created.
 
 You should see a Success message when the script is finished.  To deploy the demo app execute `oc start-build hello-server`.  This will build and deploy the hello-server in openshift.  
 
 When the demo project has successfully deployed, you should see three pods running the hello-server demo. 
+
 ![hello-server](./images/hello-server.png) 
 
 
