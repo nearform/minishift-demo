@@ -19,6 +19,7 @@ The project contains the following resources:
 - A simple webserver written in Node.js.
 - A manifest file that defines all of the resources needed to deploy the application in OpenShift.
 - Scripts to install and start Minishift, and to create the project resources.
+- Scripts to install and deploy Demo project to Openshift on AWS.
 
 The structure is as follows:
 
@@ -31,8 +32,10 @@ The structure is as follows:
 │   ├── index.js
 │   └── package.json
 ├── OpenShift
-│   └── minishift-demo.yaml
+│   ├── minishift-demo.yaml
+│   └── openshift-demo.yaml
 └── scripts
+    ├── create-openshift-project.sh
     ├── create-project.sh
     └── minishift-install.sh
 ```
@@ -389,7 +392,7 @@ You can also fine tune the cpu and memory limits of a service for better perform
 
 ## Getting started with Openshift Origin
 
-Minishift is great for deploymnet but to run in production you will need to deploy to an openshift cluster.  We have also included script example to deploy to Openshift.
+Minishift is great for local development but to run in production you will need to deploy to an openshift cluster.  We have also included script example to deploy to Openshift.
 
 ### What is Openshift Origin?
 
@@ -408,28 +411,39 @@ In order to run the demo project, we need to have hosted an Openshift environmen
 
 ## Setup GIT Deploy Keys
 
-The git repo will need to be accessable using your deploy keys.  The easiest way to do this is to fork the minishift demo and setup the deploy keys.  Instructions for setting up the keys are here. https://developer.github.com/v3/guides/managing-deploy-keys/
+The git repo will need to be accessible using your deploy keys. Detail intructions on setting up deploy keys can be found at https://developer.github.com/v3/guides/managing-deploy-keys/
 
-Run this command below to match the SSH key filename used in the deploy script:
-`ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f "deploy"`
+- Fork this repository https://github.com/nearform/minishift-demo.  
 
-Next step is to edit the scripts/create-openshift-project.sh and replace username with your github account name.
+- Run this command below to match the SSH key filename used in the deploy script:
+```ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f "deploy"```
 
-`GIT_REPO=git@github.com:username/minishift-demo.git`
+- Next step is to edit the scripts/create-openshift-project.sh and replace username with your github account name.
+```GIT_REPO=git@github.com:username/minishift-demo.git```
 
 ## Install and login with the CLI
 
-The Minishift installation installs the Openshift Origin CLI called `oc`.  You can pull down the latest CLI at [Origin CLI](https://github.com/openshift/origin/releases/latest).
+The Minishift installation installs the Openshift Origin CLI called `oc`.  `oc` is pointing to your local minishift environment.  We will need to point `oc` to your AWS hosted Openshift cluster.  
 
-To login to the openshift environment use :
-`oc login https://openshift-master.{YOUR HOSTNAME} --token={token}`
+- Go to you Openshift web console which is found at `https://openshift-master.your_hostname/console/`
 
-The token can be found at:
-`https://openshift-master.{YOUR HOSTNAME}/console/command-line`
+- Once there, click Command Line tools next to your login:
+![CLI](./images/cli-tools.png)
+
+- Copy your login command with token to clipboard:
+![OC Login](./images/oc-login.png)
+
+- Run the login command on your local terminal.  Will look like below:
+```oc login https://openshift-master.your_hostname --token=your-token```
 
 
 ## Create Openshift Project
 
-Execut scripts/create-openshift-project.sh to create the demo project on openshift.
+Execute scripts/create-openshift-project.sh to create the demo project on the Openshift cluster in AWS.
 
 You should see a Success message when the script is finished.  To deploy the demo app execute `oc start-build hello-server`.  This will build and deploy the hello-server in openshift.  
+
+When the demo project has successfully deployed, you should see three pods running the hello-server demo. 
+![hello-server](./images/hello-server.png) 
+
+
