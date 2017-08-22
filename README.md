@@ -19,6 +19,7 @@ The project contains the following resources:
 - A simple webserver written in Node.js.
 - A manifest file that defines all of the resources needed to deploy the application in OpenShift.
 - Scripts to install and start Minishift, and to create the project resources.
+- Scripts to install and deploy Demo project to Openshift on AWS.
 
 The structure is as follows:
 
@@ -31,8 +32,10 @@ The structure is as follows:
 │   ├── index.js
 │   └── package.json
 ├── OpenShift
-│   └── minishift-demo.yaml
+│   ├── minishift-demo.yaml
+│   └── openshift-demo.yaml
 └── scripts
+    ├── create-openshift-project.sh
     ├── create-project.sh
     └── minishift-install.sh
 ```
@@ -383,5 +386,69 @@ Once started with the above config change, the node will allow up to 50 pods.
 The recommended maximum pods for a node is 110. [Pods and Services](https://docs.openshift.org/latest/architecture/core_concepts/pods_and_services.html#pods)
 
 You can also fine tune the cpu and memory limits of a service for better performance.  See [Quotas and Limits](https://docs.openshift.org/latest/dev_guide/compute_resources.html).
+
+
+
+
+## Getting started with Openshift Origin
+
+Minishift is great for local development but to run in production you will need to deploy to an openshift cluster.  We have also included script example to deploy to Openshift.
+
+### What is Openshift Origin?
+
+Red Hat OpenShift Origin is an open source container application platform (PaaS) that brings *docker* and *Kubernetes* to the developers.
+
+Origin is the upstream community project that powers OpenShift. Built around a core of Docker container packaging and Kubernetes container cluster management, Origin is also augmented by application lifecycle management functionality and DevOps tooling. Origin provides a complete open source container application platform.
+
+
+### Prerequisites
+* Openshift running in a cloud environment (AWS, GCE, Azure, Bare Metal)
+* `oc` client installed locally
+
+### Install Openshift Origin
+
+In order to run the demo project, we need to have hosted an Openshift environment. As part of the Openshift work, we have deployed an Openshift cluster on our AWS account. Refer to the repository [nearform/openshift-ansible](https://github.com/nearform/openshift-ansible) for more info on how to install Openshift Origin in AWS.
+
+## Setup GIT Deploy Keys
+
+The git repo will need to be accessible using your deploy keys. Detail intructions on setting up deploy keys can be found at https://developer.github.com/v3/guides/managing-deploy-keys/
+
+- Fork this repository https://github.com/nearform/minishift-demo.  
+
+- Run this command below to match the SSH key filename used in the deploy script:
+```ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f "deploy"```
+
+- Edit the scripts/create-openshift-project.sh and replace username with your github account name.
+```GIT_REPO=git@github.com:username/minishift-demo.git```
+
+## Install and login with the CLI
+
+The Minishift installation installs the Openshift Origin CLI called `oc`.  `oc` is pointing to your local minishift environment.  We will need to point `oc` to your AWS hosted Openshift cluster.  
+
+- Go to you Openshift web console which is found at `https://openshift-master.your_hostname/console/`
+
+- Once there, click Command Line tools next to your login:
+
+![CLI](./images/cli-tools.png)
+
+- Copy your login command with token to clipboard:
+
+![OC Login](./images/oc-login.png)
+
+- Run the login command on your local terminal.  Will look like below:
+```oc login https://openshift-master.your_hostname --token=your-token```
+
+
+## Create Openshift Project
+
+`cd` into the scripts directory and run `./create-openshift-project.sh` to create the demo project on the Openshift cluster in AWS.
+
+This script takes openshift/openshift-demo.yaml - a template file that defines all the resources needed to run the application and passes it into the oc cli tool (pointing to the AWS openshift cluster) along with some additional parameters. This gets passed into the OpenShift cluster where the resources are created.
+
+You should see a Success message when the script is finished.  To deploy the demo app execute `oc start-build hello-server`.  This will build and deploy the hello-server in openshift.  
+
+When the demo project has successfully deployed, you should see three pods running the hello-server demo. 
+
+![hello-server](./images/hello-server.png) 
 
 

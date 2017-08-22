@@ -1,0 +1,235 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: openshift-demo
+  annotations:
+    openshift.io/display-name: Node.js
+    description: An example Node.js application with no database.
+    tags: quickstart,nodejs
+    iconClass: icon-nodejs
+    template.openshift.io/long-description: This template defines resources needed to develop a NodeJS application, including a build configuration and application deployment configuration. It does not include a database.
+    template.openshift.io/provider-display-name: Red Hat, Inc.
+    template.openshift.io/documentation-url: https://github.com/nearform/minishift-demo
+    template.openshift.io/support-url: https://www.nearform.com
+message: |-
+  The following service(s) have been created in your project: ${NAME}.
+
+  For more information about using this template, including OpenShift considerations, see https://github.com/openshift/nodejs-ex/blob/master/README.md.
+labels:
+  template: openshift-demo
+objects:
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+    annotations:
+      description: Exposes and load balances the application pods
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    selector:
+      name: "${NAME}"
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+  spec:
+    host: "${APPLICATION_DOMAIN}"
+    to:
+      kind: Service
+      name: "${NAME}"
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+    annotations:
+      description: Keeps track of changes in the application image
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${NAME}-jenkins"
+    annotations:
+      description: Trigger a Jenkins build when push to the repository
+  spec:
+    source:
+      type: Git
+      git:
+        uri: "${SOURCE_REPOSITORY_URL}"
+        ref: "${SOURCE_REPOSITORY_REF}"
+      contextDir: "${CONTEXT_DIR}"
+      sourceSecret:
+        name: "sshsecret"
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+            agent any
+
+            stages {
+              stage('build') {
+                steps {
+                  openshiftBuild(bldCfg: '${NAME}', showBuildLogs: 'true')
+                }
+              }
+
+              stage('deploy') {
+                steps {
+                  openshiftDeploy(depCfg: '${NAME}')
+                }
+              }
+            }
+          }
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+    - type: GitHub
+      github:
+        secret: "${GITHUB_WEBHOOK_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+    annotations:
+      description: Defines how to build the application
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: "${SOURCE_REPOSITORY_URL}"
+        ref: "${SOURCE_REPOSITORY_REF}"
+      contextDir: "${CONTEXT_DIR}"
+      sourceSecret:
+        name: "sshsecret"
+    strategy:
+      type: Docker
+      dockerStrategy:
+        env:
+          - name: "NODE_ENV"
+            value: "${NODE_ENV}"
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${NAME}:latest"
+    postCommit:
+      script: "npm test"
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+    annotations:
+      description: Defines how to deploy the application server
+  spec:
+    strategy:
+      type: Rolling
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${NAME}"
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
+    - type: ConfigChange
+    replicas: "${REPLICAS}"
+    selector:
+      name: "${NAME}"
+    template:
+      metadata:
+        name: "${NAME}"
+        labels:
+          name: "${NAME}"
+      spec:
+        containers:
+        - name: "${NAME}"
+          image: " "
+          volumeMounts:
+          - mountPath: /usr/src/app/bin/testdb
+            name: leveldb-volume
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            timeoutSeconds: 3
+            initialDelaySeconds: 3
+            httpGet:
+              path: "${PROBE}"
+              port: 8080
+          livenessProbe:
+            timeoutSeconds: 3
+            initialDelaySeconds: 30
+            httpGet:
+              path: "${PROBE}"
+              port: 8080
+          resources:
+            limits:
+              memory: "${MEMORY_LIMIT}"
+          env:
+          - name: NODE_ENV
+            value: "${NODE_ENV}"
+          - name: SERVER_PORT
+            value: "${SERVER_PORT}"
+          - name: LOG_LEVEL
+            value: "${LOG_LEVEL}"
+        volumes:
+        - name: leveldb-volume
+parameters:
+- name: NAME
+  displayName: Name
+  description: The name assigned to all of the frontend objects defined in this template.
+  required: true
+  value: ''
+- name: NAMESPACE
+  displayName: Namespace
+  description: The OpenShift Namespace where the ImageStream resides.
+  required: true
+  value: openshift-demo
+- name: MEMORY_LIMIT
+  displayName: Memory Limit
+  description: Maximum amount of memory the container can use.
+  required: true
+  value: 512Mi
+- name: SOURCE_REPOSITORY_URL
+  displayName: Git Repository URL
+  description: The URL of the repository with your application source code.
+  required: true
+  value: ''
+- name: SOURCE_REPOSITORY_REF
+  displayName: Git Reference
+  description: Set this to a branch name, tag or other ref of your repository if you are not using the default branch.
+- name: CONTEXT_DIR
+  displayName: Context Directory
+  description: Set this to the relative path to your project if it is not in the root of your repository.
+- name: APPLICATION_DOMAIN
+  displayName: Application Hostname
+  description: The exposed hostname that will route to the Node.js service, if left blank a value will be defaulted.
+  value: ''
+- name: GITHUB_WEBHOOK_SECRET
+  displayName: GitHub Webhook Secret
+  description: A secret string used to configure the GitHub webhook.
+  generate: expression
+  from: "[a-zA-Z0-9]{40}"
+- description: The path of the readiness probe and liveness probe
+  displayName: Path Probe
+  name: PROBE
+  value: ''
+- description: Environment variable to define the
+  displayName: NODE_ENV
+  name: NODE_ENV
+  value: 'production'
+- description: Node server port
+  displayName: Server Port
+  name: SERVER_PORT
+  value: '8080'
+- description: Log level applied to the application
+  displayName: Log Level
+  name: LOG_LEVEL
+  value: ''
+- description: Number of replica of pod
+  displayName: Replicas
+  name: REPLICAS
+  value: '3'
