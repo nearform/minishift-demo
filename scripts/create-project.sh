@@ -23,14 +23,9 @@ oc new-project $PROJECT --display-name="Demo Project" --description="A demo proj
 echo "=========================="
 echo "(3/4) Deploying hello-server..."
 
-oc process -f "$DIR"/../openshift/minishift-demo.yaml \
-  -p NAMESPACE=$PROJECT \
-  -p NAME=$APP_NAME \
-  -p PROBE=/healthz \
-  -p SERVER_PORT=8080 \
-  -p LOG_LEVEL=debug \
-  -p APP_VOLUME="${DIR}"/../hello-server | oc create -f -
+oc new-app nearform/centos7-s2i-nodejs:8.9.3~https://github.com/nearform/minishift-demo#pathfinders#192 \
+  --context-dir=hello-server
 
 
 echo "(4/4) Building hello-server Image"
-oc start-build $APP_NAME --from-dir $DIR/../hello-server --follow
+oc expose svc/minishift-demo

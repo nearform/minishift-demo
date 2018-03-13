@@ -29,7 +29,8 @@ if [[ -z $MINISHIFT_PATH ]]; then
   MINISHIFT_PATH=/usr/local/bin
 fi
 
-cp $DIR/minishift $MINISHIFT_PATH
+#cp $DIR/minishift $MINISHIFT_PATH
+cp $DIR/minishift-1.13.1-darwin-amd64/minishift $MINISHIFT_PATH
 rm -rf $FILE $DIR
 
 echo "(3/5) Which hypervisor do you want to use? (recommended: virtualbox)?"
