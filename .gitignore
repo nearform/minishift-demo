@@ -1,2 +1,5 @@
 hello-server/node_modules
 hello-server/testdb
+.idea
+.idea/*
+.DS_Store
