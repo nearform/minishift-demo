@@ -24,8 +24,7 @@ echo "=========================="
 echo "(3/4) Deploying hello-server..."
 
 oc new-app nearform/centos7-s2i-nodejs:8.9.3~https://github.com/nearform/minishift-demo#pathfinders#192 \
-  --context-dir=hello-server
-
+  --context-dir=hello-server \
 
 echo "(4/4) Building hello-server Image"
 oc expose svc/minishift-demo
