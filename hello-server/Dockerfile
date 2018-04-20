@@ -1,18 +1,11 @@
-FROM node:6.10.3
+FROM nearform/centos7-s2i-nodejs:8.9
 
-RUN mkdir -p /usr/src/app/bin
-RUN mkdir -p /usr/src/app/lib
-
-COPY package.json /usr/src/app/lib
-COPY ./ /usr/src/app/bin
-
-WORKDIR /usr/src/app/lib
-
+COPY package.json /tmp
+WORKDIR /tmp
 RUN npm install --depth=1
 
-WORKDIR /usr/src/app/bin
+COPY . /opt/app-root/src
+RUN cp -r /tmp/node_modules /opt/app-root/src/node_modules
 
-ENV NODE_PATH=/usr/src/app/lib/node_modules
-ENV PATH=$PATH:/usr/src/app/lib/node_modules/.bin
-
-CMD ["npm", "start"]
+WORKDIR /opt/app-root/src
+CMD ["npm", "run", "start"]
