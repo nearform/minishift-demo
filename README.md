@@ -1,8 +1,7 @@
 # Minishift Demo
-
 The purpose of this repo is to demonstrate how Minishift and OpenShift can be used to develop software in a local development environment. This repo has changed since we wrote the original [blog post](http://www.nearform.com/nodecrunch/minishift-development-environment-node-js-projects-openshift-kubernetes/)
 
-Two points of difference, We no longer use the nodemon process with mounts on the local host.  This was causing issues with failed deployments getting stuck in unvirtuous cycles of failures.  We Also switched to using a nearform supported image of node.
+Two points of difference with our recent update.  We no longer use volumnes tied to the local host and we also switched to using a nearform supported image of node. Hot syncing the files is still supported with these changes.
 
 ## Minishift Setup
 If you dont have minishift setup these steps work on **High Sierra version 10.13.4 (17E199)**
@@ -43,11 +42,11 @@ For a more permanent solution, run `minishift oc-env` and paste the output into 
 We can now create the `minishift-demo` project using the `scripts/create-project.sh` script. This script will do the following:
 1. Create a project/namespace in OpenShift named minishift-demo
 2. Load configurations for our
-  i. Images
-  ii. Builds
-  iii. Services
-  iv. Routes
-  v. Deployments
+   i. Images
+   ii. Builds
+   iii. Services
+   iv. Routes
+   v. Deployments
 3. Build our Image
 4. Deploy our Build
 
@@ -64,8 +63,20 @@ A second script is provided that will do just the build and deployments steps of
 ```
 $ sh scripts/build.sh
 ```
-### Viewing Application logs
+### Syncing on Local Changes
+To still maintain a local working development environment like previously mentioned where we used volumes, we switch to using the following commands.  This will sync a local directory (i.e. ./hello-server) to a running pod.
+#### one-time sync
+```
+oc rsync {local directory} {pod name}:{path within pod}
 
+oc rsync ./hello-server/ hello-server-7-hrlld:/opt/app-root/src
+```
+#### Hot Watch
+Since we have nodemon in play our server will restart every time changes are introduced.  To synch every change in a continuous fashion use the command above with the `--watch` flag appended.
+```
+oc rsync ./hello-server/ hello-server-7-hrlld:/opt/app-root/src --watch
+```
+### Viewing Application logs
 In the web console, use the side bar to navigate to `Application > Services` and select the `hello-server` service. From that page you should see a single running `pod`. A pod is a resource that a living container runs in. From here you should see a number of tabs such as `Details`, `Environment`, `Logs`, `Terminal` and `Events`. The logs of the running application can be viewed here.
 
 You can also use the OC CLI.  You first need to know your pod's name
