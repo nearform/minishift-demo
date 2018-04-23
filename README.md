@@ -42,11 +42,11 @@ For a more permanent solution, run `minishift oc-env` and paste the output into 
 We can now create the `minishift-demo` project using the `scripts/create-project.sh` script. This script will do the following:
 1. Create a project/namespace in OpenShift named minishift-demo
 2. Load configurations for our
-   i. Images
-   ii. Builds
-   iii. Services
-   iv. Routes
-   v. Deployments
+  * Images
+  * Builds
+  * Services
+  * Routes
+  * Deployments
 3. Build our Image
 4. Deploy our Build
 
