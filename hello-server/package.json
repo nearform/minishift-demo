@@ -1,28 +1,19 @@
 {
   "name": "hello-server",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Minishift hello-server example",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:dev": "nodemon -L index.js",
-    "test": "jest",
-    "minishift:install": "../scripts/minishift-install.sh",
-    "oc:create": "../scripts/create-project.sh",
-    "oc:delete": "oc delete project minishift-demo",
-    "oc:rebuild": "oc start-build hello-server --from-dir=./ --follow",
-    "oc:console": "minishift console"
+    "start:dev": "nodemon -L index.js"
   },
   "dependencies": {
-    "level": "^1.6.0",
-    "nodemon": "^1.11.0",
-    "pino": "^4.5.1",
-    "restify": "^4.3.0"
+    "nodemon": "^1.17.3",
+    "pino": "^4.16.1",
+    "restify": "^7.1.1"
   },
-    "devDependencies": {
-    "jest": "^20.0.4"
-  },
+  "devDependencies": {},
   "engines": {
-    "node": ">=6.9.4"
+    "node": "8.9.3"
   }
 }
