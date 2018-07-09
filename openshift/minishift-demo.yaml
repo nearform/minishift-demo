@@ -54,7 +54,8 @@ parameters:
   value: 'debug'
 
 objects:
-- kind: BuildConfig
+- apiVersion: v1
+  kind: BuildConfig
   metadata:
     annotations:
       description: Defines how to build the application
@@ -74,10 +75,12 @@ objects:
     - type: ConfigChange
 
 - kind: ImageStream
+  apiVersion: v1
   metadata:
     name: "${NAME}"
 
 - kind: Service
+  apiVersion: v1
   metadata:
     annotations:
       description: Exposes and load balances the application pods
@@ -91,6 +94,7 @@ objects:
       name: "${NAME}"
 
 - kind: Route
+  apiVersion: v1
   metadata:
     name: "${NAME}"
   spec:
@@ -100,6 +104,7 @@ objects:
       name: "${NAME}"
 
 - kind: DeploymentConfig
+  apiVersion: v1
   metadata:
     name: "${NAME}"
   selector:

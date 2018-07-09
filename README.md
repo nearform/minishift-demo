@@ -54,7 +54,7 @@ All of the objects created in the project will be named or prefixed with hello-s
 ```
 replication controller "hello-server-X" successfully rolled out
 ```
-You should be able to open the route listed [here](https://192.168.64.2:8443/console/project/minishift-demo/browse/routes).  A succesful deployment will respond on the URL with 
+You should be able to open the route listed [here](http://hello-server-minishift-demo.192.168.64.3.nip.io/).  A succesful deployment will respond on the URL with 
 ```
 {msg: "Hello World"}
 ```
